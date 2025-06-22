@@ -1,0 +1,6 @@
+@DiscordCloud.Core_HostAddress = http://localhost:5267
+
+GET {{DiscordCloud.Core_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

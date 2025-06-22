@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35027.167
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordCloud", "DiscordCloud\DiscordCloud.csproj", "{174600F0-E58D-492B-83C0-804F41F67B08}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiscordCloud.Core", "DiscordCloud.Core\DiscordCloud.Core.csproj", "{D1D76811-DF90-4926-BF31-9196CDFED799}"
+	ProjectSection(ProjectDependencies) = postProject
+		{967B6A89-FAC1-4D63-9376-E8EE743331D8} = {967B6A89-FAC1-4D63-9376-E8EE743331D8}
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DiscordCloud.Hash", "DiscordCloud.Hash\DiscordCloud.Hash.csproj", "{967B6A89-FAC1-4D63-9376-E8EE743331D8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{174600F0-E58D-492B-83C0-804F41F67B08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{174600F0-E58D-492B-83C0-804F41F67B08}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{174600F0-E58D-492B-83C0-804F41F67B08}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{174600F0-E58D-492B-83C0-804F41F67B08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1D76811-DF90-4926-BF31-9196CDFED799}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1D76811-DF90-4926-BF31-9196CDFED799}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1D76811-DF90-4926-BF31-9196CDFED799}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1D76811-DF90-4926-BF31-9196CDFED799}.Release|Any CPU.Build.0 = Release|Any CPU
+		{967B6A89-FAC1-4D63-9376-E8EE743331D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{967B6A89-FAC1-4D63-9376-E8EE743331D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{967B6A89-FAC1-4D63-9376-E8EE743331D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{967B6A89-FAC1-4D63-9376-E8EE743331D8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D8AD1E36-25CC-46E8-BC71-C287CF0A4D0F}
+	EndGlobalSection
+EndGlobal

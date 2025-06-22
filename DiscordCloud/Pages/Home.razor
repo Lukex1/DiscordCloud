@@ -1,0 +1,224 @@
+﻿@page "/"
+@inject HttpClient Http
+@inject IJSRuntime JS
+@using DiscordCloud.Models
+
+<Navbar OnClickUpload="ShowUploadModal" />
+
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <input type="text" class="form-control" placeholder="Search files..." @bind="searchTerm" @oninput="OnSearchTermChanged" />
+        </div>
+    </div>
+
+
+    @if (showModal)
+    {
+        <div class="modal" tabindex="-1" style="display:block;" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Upload Files</h5>
+                        <button type="button" class="close" @onclick="CloseModal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <InputFile OnChange="HandleFileSelected" multiple />
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                        <button type="button" class="btn btn-primary" @onclick="UploadSelectedFiles">Upload</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    else if (filteredFiles == null || !filteredFiles.Any())
+    {
+        <p><em>No Files to show!</em></p>
+    }
+    else
+    {
+        <table class="table table-striped table-hover">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Nazwa</th>
+                    <th>Data Utworzenia</th>
+                    <th>Rozmiar (MB)</th>
+                    <th>Akcje</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var file in filteredFiles)
+                {
+                    <tr>
+                        <td><i class="fas fa-save"></i></td>
+                        <td>@file.FileName</td>
+                        <td>@file.CreationDate</td>
+                        <td>@Math.Round(file.FileSize, 2)</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="()=>DownloadFile(file.FileName)">Download</button>
+                            <button class="btn btn-danger btn-sm" @onclick="()=>DeleteFile(file.FileName)">Remove File</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+    }
+</div>
+
+@code {
+    private List<FileModel> fileModels = new List<FileModel>();
+    private List<FileModel> filteredFiles = new List<FileModel>();
+    private string errorMessage;
+    private bool showModal = false;
+    private List<IBrowserFile> selectedFiles = new List<IBrowserFile>();
+    private string searchTerm = "";
+    private string URL = "http://localhost:5000/";
+
+    private void ShowUploadModal()
+    {
+        showModal = true;
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        selectedFiles = e.GetMultipleFiles().ToList();
+    }
+
+    private async Task LoadFiles()
+    {
+        try
+        {
+            fileModels = await Http.GetFromJsonAsync<List<FileModel>>($"{URL}DiscordCloud/Files");
+            filteredFiles = fileModels;
+            Console.WriteLine("Data loaded successfully");
+        }
+        catch (Exception ex)
+        {
+            errorMessage = ex.Message;
+            Console.WriteLine($"Error loading data: {ex}");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadFiles();
+    }
+
+    private async Task UploadSelectedFiles()
+    {
+        if (selectedFiles != null && selectedFiles.Any())
+        {
+            foreach (var file in selectedFiles)
+            {
+                try
+                {
+                    var content = new MultipartFormDataContent();
+                    var fileContent = new StreamContent(file.OpenReadStream(long.MaxValue));
+
+                    content.Add(fileContent, "files", file.Name);
+
+                    var response = await Http.PostAsync($"{URL}DiscordCloud/upload", content);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        Console.WriteLine($"Uploaded file {file.Name}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Failed to upload file {file.Name}");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error preparing file {file.Name}: {ex.Message}");
+                }
+            }
+
+            await LoadFiles();
+            CloseModal();
+        }
+    }
+
+    private async Task DeleteFile(string fileName)
+    {
+        try
+        {
+            bool userConfirmed = await JS.InvokeAsync<bool>("confirmDelete", $"Czy na pewno chcesz usunąć plik {fileName}?");
+            if (userConfirmed)
+            {
+                var response = await Http.DeleteAsync($"{URL}DiscordCloud/Delete/{fileName}");
+                if (response.IsSuccessStatusCode)
+                {
+                    Console.WriteLine("File Removed");
+                    await LoadFiles();
+                    StateHasChanged();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting file: {ex.Message}");
+        }
+    }
+
+    private async Task DownloadFile(string fileName)
+    {
+        try
+        {
+            var response = await Http.GetAsync($"{URL}DiscordCloud/Download/{fileName}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                await JS.InvokeVoidAsync("downloadFile", fileBytes, fileName);
+            }
+            else
+            {
+                Console.WriteLine("Failed to download file.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading file: {ex.Message}");
+        }
+    }
+
+    private void FilterFiles()
+    {
+        if (string.IsNullOrEmpty(searchTerm))
+        {
+            filteredFiles = fileModels;
+        }
+        else
+        {
+            filteredFiles = fileModels.Where(f => f.FileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+    }
+
+    private void OnSearchTermChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString();
+        FilterFiles();
+    }
+
+    protected override void OnParametersSet()
+    {
+        FilterFiles();
+    }
+}
